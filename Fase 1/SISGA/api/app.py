@@ -1,9 +1,11 @@
-import psycopg2
-from connection import get_conn
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify
+from flask_cors import CORS, cross_origin
 
+from connection import get_conn
 conn = get_conn()
+
 app = Flask(__name__)
+CORS(app)
 
 ########################################Alunos####################################################
 @app.route('/alunos', methods=['GET'])
@@ -53,8 +55,14 @@ def delete_aluno(cod_aluno):
 
 @app.route('/', methods=['GET'])
 def health_check():
-    return "healthy"
+    return jsonify({"success": "okay"})
 
+@app.route('/inicializar', methods=['GET'])
+def inicializar():
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT * FROM alunos")
+        print(cursor.fetchall())
+        return jsonify(cursor.fetchall())
 ############################Coordenadores#######################################
 @app.route('/coordenadores', methods=['GET'])
 def get_coordenadores():
