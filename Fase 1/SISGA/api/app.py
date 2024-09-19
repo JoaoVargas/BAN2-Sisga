@@ -22,7 +22,7 @@ def get_aluno(cod_aluno):
     cursor.close()
     if aluno:
         return jsonify(aluno)
-    return jsonify({'error': 'Aluno not found'}), 404
+    return jsonify({'error': 'Aluno não encontrado'}), 404
 
 @app.route('/alunos', methods=['POST'])
 def create_aluno():
@@ -41,7 +41,7 @@ def update_aluno(cod_aluno):
     cursor.execute("UPDATE public.alunos SET cpf = %s WHERE cod_aluno = %s;", (data['cpf'], cod_aluno))
     conn.commit()
     cursor.close()
-    return jsonify({'message': 'Aluno updated successfully'})
+    return jsonify({'message': 'Aluno atualizado com sucesso'})
 
 @app.route('/alunos/<int:cod_aluno>', methods=['DELETE'])
 def delete_aluno(cod_aluno):
@@ -49,7 +49,7 @@ def delete_aluno(cod_aluno):
     cursor.execute("DELETE FROM public.alunos WHERE cod_aluno = %s;", (cod_aluno,))
     conn.commit()
     cursor.close()
-    return jsonify({'message': 'Aluno deleted successfully'})
+    return jsonify({'message': 'Aluno deletadado com sucesso'})
 
 @app.route('/', methods=['GET'])
 def health_check():
@@ -72,7 +72,7 @@ def get_coordenador(cod_coordenador):
     cursor.close()
     if coordenador:
         return jsonify(coordenador)
-    return jsonify({'error': 'Coordenador not found'}), 404
+    return jsonify({'error': 'Coordenador não encontrado'}), 404
 
 @app.route('/coordenadores', methods=['POST'])
 def create_coordenador():
@@ -97,7 +97,7 @@ def update_coordenador(cod_coordenador):
     )
     conn.commit()
     cursor.close()
-    return jsonify({'message': 'Coordenador updated successfully'})
+    return jsonify({'message': 'Coordenador atualizado com sucesso'})
 
 @app.route('/coordenadores/<int:cod_coordenador>', methods=['DELETE'])
 def delete_coordenador(cod_coordenador):
@@ -105,7 +105,7 @@ def delete_coordenador(cod_coordenador):
     cursor.execute("DELETE FROM public.coordenadores WHERE cod_coordenador = %s;", (cod_coordenador,))
     conn.commit()
     cursor.close()
-    return jsonify({'message': 'Coordenador deleted successfully'})
+    return jsonify({'message': 'Coordenador deletadado com sucesso'})
 
 ############################Professores#######################################
 @app.route('/professores', methods=['GET'])
@@ -124,7 +124,7 @@ def get_professor(cod_professor):
     cursor.close()
     if professor:
         return jsonify(professor)
-    return jsonify({'error': 'Professor not found'}), 404
+    return jsonify({'error': 'Professor não encontrado'}), 404
 
 @app.route('/professores', methods=['POST'])
 def create_professor():
@@ -149,7 +149,7 @@ def update_professor(cod_professor):
     )
     conn.commit()
     cursor.close()
-    return jsonify({'message': 'Professor updated successfully'})
+    return jsonify({'message': 'Professor atualizado com sucesso'})
 
 @app.route('/professores/<int:cod_professor>', methods=['DELETE'])
 def delete_professor(cod_professor):
@@ -157,9 +157,8 @@ def delete_professor(cod_professor):
     cursor.execute("DELETE FROM public.professores WHERE cod_professor = %s;", (cod_professor,))
     conn.commit()
     cursor.close()
-    return jsonify({'message': 'Professor deleted successfully'})
+    return jsonify({'message': 'Professor deletadado com sucesso'})
 
-#
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=5002)
