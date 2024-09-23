@@ -180,10 +180,10 @@ ALTER SEQUENCE public.disciplinas_cod_disciplina_seq OWNED BY public.disciplinas
 
 
 --
--- Name: historico; Type: TABLE; Schema: public; Owner: -
+-- Name: historicos; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.historico (
+CREATE TABLE public.historicos (
     cod_historico integer NOT NULL,
     cod_aluno integer NOT NULL,
     cod_disciplina integer NOT NULL,
@@ -210,7 +210,7 @@ CREATE SEQUENCE public.historico_cod_historico_seq
 -- Name: historico_cod_historico_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.historico_cod_historico_seq OWNED BY public.historico.cod_historico;
+ALTER SEQUENCE public.historico_cod_historico_seq OWNED BY public.historicos.cod_historico;
 
 
 --
@@ -302,7 +302,7 @@ CREATE TABLE public.turmas (
     cod_turma integer NOT NULL,
     sala character varying(10) NOT NULL,
     max_alunos integer NOT NULL,
-    agenta json NOT NULL,
+    agenda json NOT NULL,
     cod_disciplina integer NOT NULL,
     cod_professor integer NOT NULL,
     CONSTRAINT max_alunos_check CHECK ((max_alunos >= 0))
@@ -365,10 +365,10 @@ ALTER TABLE ONLY public.disciplinas ALTER COLUMN cod_disciplina SET DEFAULT next
 
 
 --
--- Name: historico cod_historico; Type: DEFAULT; Schema: public; Owner: -
+-- Name: historicos cod_historico; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.historico ALTER COLUMN cod_historico SET DEFAULT nextval('public.historico_cod_historico_seq'::regclass);
+ALTER TABLE ONLY public.historicos ALTER COLUMN cod_historico SET DEFAULT nextval('public.historico_cod_historico_seq'::regclass);
 
 
 --
@@ -423,7 +423,7 @@ ALTER TABLE ONLY public.turmas ALTER COLUMN cod_turma SET DEFAULT nextval('publi
 
 
 --
--- Data for Name: historico; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: historicos; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 
@@ -556,10 +556,10 @@ ALTER TABLE ONLY public.disciplinas
 
 
 --
--- Name: historico cod_historico_pk; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: historicos cod_historico_pk; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.historico
+ALTER TABLE ONLY public.historicos
     ADD CONSTRAINT cod_historico_pk PRIMARY KEY (cod_historico);
 
 
@@ -604,10 +604,10 @@ ALTER TABLE ONLY public.relatorios
 
 
 --
--- Name: historico cod_aluno_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: historicos cod_aluno_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.historico
+ALTER TABLE ONLY public.historicos
     ADD CONSTRAINT cod_aluno_fk FOREIGN KEY (cod_aluno) REFERENCES public.alunos(cod_aluno) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
@@ -639,7 +639,7 @@ ALTER TABLE ONLY public.turmas
 -- Name: historico cod_disciplina_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.historico
+ALTER TABLE ONLY public.historicos
     ADD CONSTRAINT cod_disciplina_fk FOREIGN KEY (cod_disciplina) REFERENCES public.disciplinas(cod_disciplina) ON UPDATE CASCADE NOT VALID;
 
 
