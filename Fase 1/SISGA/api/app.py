@@ -486,5 +486,325 @@ def delete_aluno(cod_aluno):
 
 
 
+# Cursos
+@app.route('/cursos', methods=['GET'])
+def get_cursos():
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM public.cursos;")
+    cursos = cursor.fetchall()
+    cursor.close()
+    return jsonify(cursos)
+
+@app.route('/cursos/<int:cod_curso>', methods=['GET'])
+def get_curso(cod_curso):
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM public.cursos WHERE cod_curso = %s;", (cod_curso,))
+    curso = cursor.fetchone()
+    cursor.close()
+    if curso:
+        return jsonify(curso)
+    return jsonify({'error': 'Curso não encontrado'}), 404
+
+@app.route('/cursos', methods=['POST'])
+def create_curso():
+    data = request.json
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO public.cursos (nome, periodo, credito_total, cod_coordenador)
+        VALUES (%s, %s, %s, %s) RETURNING cod_curso;
+    """, (data['nome'], data['periodo'], data['credito_total'], data['cod_coordenador']))
+    cod_curso = cursor.fetchone()[0]
+    conn.commit()
+    cursor.close()
+    return jsonify({'cod_curso': cod_curso}), 201
+
+@app.route('/cursos/<int:cod_curso>', methods=['PUT'])
+def update_curso(cod_curso):
+    data = request.json
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE public.cursos 
+        SET nome = %s, periodo = %s, credito_total = %s, cod_coordenador = %s 
+        WHERE cod_curso = %s;
+    """, (data['nome'], data['periodo'], data['credito_total'], data['cod_coordenador'], cod_curso))
+    conn.commit()
+    cursor.close()
+    return jsonify({'message': 'Curso atualizado com sucesso'})
+
+@app.route('/cursos/<int:cod_curso>', methods=['DELETE'])
+def delete_curso(cod_curso):
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM public.cursos WHERE cod_curso = %s;", (cod_curso,))
+    conn.commit()
+    cursor.close()
+    return jsonify({'message': 'Curso deletado com sucesso'})
+
+
+
+
+
+# Disciplinas
+@app.route('/disciplinas', methods=['GET'])
+def get_disciplinas():
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM public.disciplinas;")
+    disciplinas = cursor.fetchall()
+    cursor.close()
+    return jsonify(disciplinas)
+
+@app.route('/disciplinas/<int:cod_disciplina>', methods=['GET'])
+def get_disciplina(cod_disciplina):
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM public.disciplinas WHERE cod_disciplina = %s;", (cod_disciplina,))
+    disciplina = cursor.fetchone()
+    cursor.close()
+    if disciplina:
+        return jsonify(disciplina)
+    return jsonify({'error': 'Disciplina não encontrada'}), 404
+
+@app.route('/disciplinas', methods=['POST'])
+def create_disciplina():
+    data = request.json
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO public.disciplinas (nome, fase, creditos)
+        VALUES (%s, %s, %s) RETURNING cod_disciplina;
+    """, (data['nome'], data['fase'], data['creditos']))
+    cod_disciplina = cursor.fetchone()[0]
+    conn.commit()
+    cursor.close()
+    return jsonify({'cod_disciplina': cod_disciplina}), 201
+
+@app.route('/disciplinas/<int:cod_disciplina>', methods=['PUT'])
+def update_disciplina(cod_disciplina):
+    data = request.json
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE public.disciplinas 
+        SET nome = %s, fase = %s, creditos = %s 
+        WHERE cod_disciplina = %s;
+    """, (data['nome'], data['fase'], data['creditos'], cod_disciplina))
+    conn.commit()
+    cursor.close()
+    return jsonify({'message': 'Disciplina atualizada com sucesso'})
+
+@app.route('/disciplinas/<int:cod_disciplina>', methods=['DELETE'])
+def delete_disciplina(cod_disciplina):
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM public.disciplinas WHERE cod_disciplina = %s;", (cod_disciplina,))
+    conn.commit()
+    cursor.close()
+    return jsonify({'message': 'Disciplina deletada com sucesso'})
+
+
+
+
+
+# Curso_Disciplinas
+@app.route('/curso_disciplinas', methods=['GET'])
+def get_curso_disciplinas():
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM public.curso_disciplinas;")
+    curso_disciplinas = cursor.fetchall()
+    cursor.close()
+    return jsonify(curso_disciplinas)
+
+@app.route('/curso_disciplinas', methods=['POST'])
+def create_curso_disciplina():
+    data = request.json
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO public.curso_disciplinas (cod_curso, cod_disciplina)
+        VALUES (%s, %s) RETURNING cod_curso, cod_disciplina;
+    """, (data['cod_curso'], data['cod_disciplina']))
+    result = cursor.fetchone()
+    conn.commit()
+    cursor.close()
+    return jsonify({'cod_curso': result[0], 'cod_disciplina': result[1]}), 201
+
+@app.route('/curso_disciplinas', methods=['DELETE'])
+def delete_curso_disciplina():
+    data = request.json
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM public.curso_disciplinas WHERE cod_curso = %s AND cod_disciplina = %s;",
+                   (data['cod_curso'], data['cod_disciplina']))
+    conn.commit()
+    cursor.close()
+    return jsonify({'message': 'Associação curso-disciplina deletada com sucesso'})
+
+
+
+
+
+# Turmas
+@app.route('/turmas', methods=['GET'])
+def get_turmas():
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM public.turmas;")
+    turmas = cursor.fetchall()
+    cursor.close()
+    return jsonify(turmas)
+
+@app.route('/turmas/<int:cod_turma>', methods=['GET'])
+def get_turma(cod_turma):
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM public.turmas WHERE cod_turma = %s;", (cod_turma,))
+    turma = cursor.fetchone()
+    cursor.close()
+    if turma:
+        return jsonify(turma)
+    return jsonify({'error': 'Turma não encontrada'}), 404
+
+@app.route('/turmas', methods=['POST'])
+def create_turma():
+    data = request.json
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO public.turmas (cod_disciplina, horario, ano, semestre, cod_professor)
+        VALUES (%s, %s, %s, %s, %s) RETURNING cod_turma;
+    """, (data['cod_disciplina'], data['horario'], data['ano'], data['semestre'], data['cod_professor']))
+    cod_turma = cursor.fetchone()[0]
+    conn.commit()
+    cursor.close()
+    return jsonify({'cod_turma': cod_turma}), 201
+
+@app.route('/turmas/<int:cod_turma>', methods=['PUT'])
+def update_turma(cod_turma):
+    data = request.json
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE public.turmas 
+        SET cod_disciplina = %s, horario = %s, ano = %s, semestre = %s, cod_professor = %s
+        WHERE cod_turma = %s;
+    """, (data['cod_disciplina'], data['horario'], data['ano'], data['semestre'], data['cod_professor'], cod_turma))
+    conn.commit()
+    cursor.close()
+    return jsonify({'message': 'Turma atualizada com sucesso'})
+
+@app.route('/turmas/<int:cod_turma>', methods=['DELETE'])
+def delete_turma(cod_turma):
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM public.turmas WHERE cod_turma = %s;", (cod_turma,))
+    conn.commit()
+    cursor.close()
+    return jsonify({'message': 'Turma deletada com sucesso'})
+
+
+
+
+
+# Relatorios
+@app.route('/relatorios', methods=['GET'])
+def get_relatorios():
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM public.relatorios;")
+    relatorios = cursor.fetchall()
+    cursor.close()
+    return jsonify(relatorios)
+
+@app.route('/relatorios/<int:cod_relatorio>', methods=['GET'])
+def get_relatorio(cod_relatorio):
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM public.relatorios WHERE cod_relatorio = %s;", (cod_relatorio,))
+    relatorio = cursor.fetchone()
+    cursor.close()
+    if relatorio:
+        return jsonify(relatorio)
+    return jsonify({'error': 'Relatório não encontrado'}), 404
+
+@app.route('/relatorios', methods=['POST'])
+def create_relatorio():
+    data = request.json
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO public.relatorios (cod_aluno, cod_turma, conteudo, data_envio)
+        VALUES (%s, %s, %s, %s) RETURNING cod_relatorio;
+    """, (data['cod_aluno'], data['cod_turma'], data['conteudo'], data['data_envio']))
+    cod_relatorio = cursor.fetchone()[0]
+    conn.commit()
+    cursor.close()
+    return jsonify({'cod_relatorio': cod_relatorio}), 201
+
+@app.route('/relatorios/<int:cod_relatorio>', methods=['PUT'])
+def update_relatorio(cod_relatorio):
+    data = request.json
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE public.relatorios 
+        SET cod_aluno = %s, cod_turma = %s, conteudo = %s, data_envio = %s
+        WHERE cod_relatorio = %s;
+    """, (data['cod_aluno'], data['cod_turma'], data['conteudo'], data['data_envio'], cod_relatorio))
+    conn.commit()
+    cursor.close()
+    return jsonify({'message': 'Relatório atualizado com sucesso'})
+
+@app.route('/relatorios/<int:cod_relatorio>', methods=['DELETE'])
+def delete_relatorio(cod_relatorio):
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM public.relatorios WHERE cod_relatorio = %s;", (cod_relatorio,))
+    conn.commit()
+    cursor.close()
+    return jsonify({'message': 'Relatório deletado com sucesso'})
+
+
+
+
+
+# Historicos
+@app.route('/historicos', methods=['GET'])
+def get_historicos():
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM public.historicos;")
+    historicos = cursor.fetchall()
+    cursor.close()
+    return jsonify(historicos)
+
+@app.route('/historicos/<int:cod_historico>', methods=['GET'])
+def get_historico(cod_historico):
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM public.historicos WHERE cod_historico = %s;", (cod_historico,))
+    historico = cursor.fetchone()
+    cursor.close()
+    if historico:
+        return jsonify(historico)
+    return jsonify({'error': 'Histórico não encontrado'}), 404
+
+@app.route('/historicos', methods=['POST'])
+def create_historico():
+    data = request.json
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO public.historicos (cod_aluno, cod_turma, nota, frequencia, status)
+        VALUES (%s, %s, %s, %s, %s) RETURNING cod_historico;
+    """, (data['cod_aluno'], data['cod_turma'], data['nota'], data['frequencia'], data['status']))
+    cod_historico = cursor.fetchone()[0]
+    conn.commit()
+    cursor.close()
+    return jsonify({'cod_historico': cod_historico}), 201
+
+@app.route('/historicos/<int:cod_historico>', methods=['PUT'])
+def update_historico(cod_historico):
+    data = request.json
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE public.historicos 
+        SET cod_aluno = %s, cod_turma = %s, nota = %s, frequencia = %s, status = %s
+        WHERE cod_historico = %s;
+    """, (data['cod_aluno'], data['cod_turma'], data['nota'], data['frequencia'], data['status'], cod_historico))
+    conn.commit()
+    cursor.close()
+    return jsonify({'message': 'Histórico atualizado com sucesso'})
+
+@app.route('/historicos/<int:cod_historico>', methods=['DELETE'])
+def delete_historico(cod_historico):
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM public.historicos WHERE cod_historico = %s;", (cod_historico,))
+    conn.commit()
+    cursor.close()
+    return jsonify({'message': 'Histórico deletado com sucesso'})
+
+
+
+
 if __name__ == '__main__':
 	app.run(debug=True, host='0.0.0.0', port=5002)
