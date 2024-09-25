@@ -8,7 +8,7 @@ import Alunos from './src/routes/alunos/Alunos';
 import Aluno from './src/routes/alunos/Aluno';
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  // <StrictMode>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={
@@ -20,5 +20,5 @@ createRoot(document.getElementById('root')).render(
         <Route path="*" element={<Null />} />
       </Routes>
     </BrowserRouter>
-  </StrictMode>,
+  // </StrictMode>
 )

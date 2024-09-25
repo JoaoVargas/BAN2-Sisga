@@ -283,10 +283,10 @@ def get_pessoas():
   cursor.close()
   return jsonify(pessoas)
 
-@app.route('/pessoas/<int:cpf>', methods=['GET'])
-def get_pessoa(cpf):
+@app.route('/pessoas/<cpf>', methods=['GET'])
+def get_pessoa(cpf=''):
   cursor = conn.cursor()
-  cursor.execute("SELECT * FROM public.pessoas WHERE cpf = %s;", (cpf,))
+  cursor.execute("SELECT * FROM public.pessoas WHERE cpf = %s;", ([cpf]))
   pessoa = cursor.fetchone()
   cursor.close()
   if pessoa:
@@ -303,8 +303,8 @@ def create_pessoa():
   cursor.close()
   return jsonify({'cpf': cpf}), 201
 
-@app.route('/pessoas/<int:cpf>', methods=['PUT'])
-def update_pessoa(cpf):
+@app.route('/pessoas/<cpf>', methods=['PUT'])
+def update_pessoa(cpf=''):
   data = request.json
   cursor = conn.cursor()
   cursor.execute("UPDATE public.pessoas SET cpf = %s WHERE cpf = %s;", (data['cpf'], cpf))
@@ -312,8 +312,8 @@ def update_pessoa(cpf):
   cursor.close()
   return jsonify({'message': 'pessoa atualizado com sucesso'})
 
-@app.route('/pessoas/<int:cpf>', methods=['DELETE'])
-def delete_pessoa(cpf):
+@app.route('/pessoas/<cpf>', methods=['DELETE'])
+def delete_pessoa(cpf=''):
   cursor = conn.cursor()
   cursor.execute("DELETE FROM public.pessoas WHERE cpf = %s;", (cpf,))
   conn.commit()
