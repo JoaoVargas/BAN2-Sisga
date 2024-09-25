@@ -43,7 +43,8 @@ const CustomNavbar = ( {showToast, setShowToast, messageToast, setMessageToast, 
       className="bg-body-tertiary">
         <Container>
           <Navbar.Brand 
-          onClick={() => navigate("/home")}>
+          onClick={() => navigate("/home")}
+          role='button'>
             SISGA
           </Navbar.Brand>
           <Navbar.Toggle 

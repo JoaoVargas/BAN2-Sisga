@@ -486,6 +486,54 @@ def delete_aluno(cod_aluno):
 
 
 
+#Auxiliar Alunos
+@app.route('/alunospessoas', methods=['GET'])
+def get_alunospessoas():
+  cursor = conn.cursor()
+  cursor.execute("""
+                  SELECT 
+                    a.cod_aluno,
+                    a.cpf,
+                    p.nome,
+                    p.email,
+                    p.data_nascimento,
+                    p.sexo,
+                    p.cep,
+                    p.telefone
+                  FROM public.alunos a
+                  LEFT JOIN public.pessoas p
+                    ON a.cpf = p.cpf
+                  ;""")
+  alunospessoas = cursor.fetchall()
+  cursor.close()
+  return jsonify(alunospessoas)
+
+@app.route('/alunospessoas/<int:cod_aluno>', methods=['GET'])
+def get_alunopessoa(cod_aluno):
+  cursor = conn.cursor()
+  cursor.execute("""
+                  SELECT 
+                    a.cod_aluno,
+                    a.cpf,
+                    p.nome,
+                    p.email,
+                    p.data_nascimento,
+                    p.sexo,
+                    p.cep,
+                    p.telefone
+                  FROM public.alunos a
+                  LEFT JOIN public.pessoas p
+                    ON a.cpf = p.cpf
+                  WHERE
+                    a.cod_aluno = %s
+                  ;""", (cod_aluno,))
+  alunopessoa = cursor.fetchall()
+  cursor.close()
+  return jsonify(alunopessoa)
+
+
+
+
 # Cursos
 @app.route('/cursos', methods=['GET'])
 def get_cursos():
@@ -803,6 +851,13 @@ def delete_historico(cod_historico):
     cursor.close()
     return jsonify({'message': 'Histórico deletado com sucesso'})
 
+
+
+
+
+# Relatorios Dados
+# % do curso concluida
+# historico + disciplinas q faltam
 
 
 

@@ -1,25 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Container } from 'react-bootstrap';
 import Table from 'react-bootstrap/Table';
-
-
-function useForceUpdate(){
-  const [value, setValue] = useState(0);
-  return () => setValue(value => value + 1); 
-}
+import { useNavigate } from 'react-router-dom';
 
 const CustomAlunosTable = ({alunos}) => {
-  const forceUpdate = useForceUpdate();
-
-  useEffect(() => {
-    console.log(alunos);
-  }, [alunos]);
+  const navigate = useNavigate();
 
   return (
     <>
       <Container 
-      className='mt-5 p-0 rounded-3 overflow-hidden border border-3'
-      onMouseOver={forceUpdate}>
+      className='mt-5 p-0 rounded-3 overflow-hidden border border-3'>
         <Table 
         striped 
         borderless 
@@ -44,7 +34,7 @@ const CustomAlunosTable = ({alunos}) => {
               alunos && alunos.length > 0
               ?
               alunos.map((aluno, id) => {
-                  const date = new Date(aluno[6]);
+                  const date = new Date(aluno[4]);
                   const day = String(date.getUTCDate()).padStart(2, '0');
                   const month = String(date.getUTCMonth() + 1).padStart(2, '0'); // Os meses são de 0 a 11, então adicionamos 1
                   const year = date.getUTCFullYear();
@@ -52,14 +42,17 @@ const CustomAlunosTable = ({alunos}) => {
                   const sexo = ["Masculino", "Feminino"]
 
                   return (
-                    <tr key={id}>
+                    <tr 
+                    key={id} 
+                    onClick={() => navigate("/alunos/"+ aluno[0])}
+                    role='button'>
                       <td>{aluno[0]}</td>
                       <td>{aluno[1]}</td>
                       <td>{aluno[2]}</td>
-                      <td>{aluno[5]}</td>
+                      <td>{aluno[3]}</td>
                       <td>{nasc}</td>
-                      <td>{sexo[aluno[3]]}</td>
-                      <td>{aluno[4]}</td>
+                      <td>{sexo[aluno[5]]}</td>
+                      <td>{aluno[6]}</td>
                       <td>{aluno[7]}</td>
                     </tr>
                   )
