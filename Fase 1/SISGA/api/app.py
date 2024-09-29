@@ -452,10 +452,144 @@ def update_professor(cod_professor):
 @app.route('/professores/<int:cod_professor>', methods=['DELETE'])
 def delete_professor(cod_professor):
   cursor = conn.cursor()
-  cursor.execute("DELETE FROM public.professores WHERE cod_professor = %s;", (cod_professor,))
+  cursor.execute("""
+    DELETE FROM public.pessoas 
+    WHERE cpf IN (
+        SELECT cpf FROM public.professores WHERE cod_professor = %s
+    );"""
+      , (cod_professor,))
   conn.commit()
   cursor.close()
   return jsonify({'message': 'Professor deletadado com sucesso'})
+
+
+
+
+
+# Auxiliar Professores
+@app.route('/professorespessoas', methods=['GET'])
+def get_professorespessoas():
+  cursor = conn.cursor()
+  cursor.execute("""
+                  SELECT 
+                    p.cod_professor,
+                    p.cpf,
+                    pe.nome,
+                    pe.email,
+                    pe.data_nascimento,
+                    pe.sexo,
+                    pe.cep,
+                    pe.telefone,
+                    p.salario,
+                    p.formacao
+                  FROM public.professores p
+                  LEFT JOIN public.pessoas pe
+                    ON p.cpf = pe.cpf
+                  ORDER BY p.cod_professor
+                  ;""")
+  professorespessoas = cursor.fetchall()
+  cursor.close()
+  return jsonify(professorespessoas)
+
+@app.route('/professorespessoas/<int:cod_professor>', methods=['GET'])
+def get_professorpessoa(cod_professor):
+  cursor = conn.cursor()
+  cursor.execute("""
+                  SELECT 
+                    p.cod_professor,
+                    p.cpf,
+                    pe.nome,
+                    pe.email,
+                    pe.data_nascimento,
+                    pe.sexo,
+                    pe.cep,
+                    pe.telefone,
+                    p.salario,
+                    p.formacao
+                  FROM public.professores p
+                  LEFT JOIN public.pessoas pe
+                    ON p.cpf = pe.cpf
+                  WHERE
+                    p.cod_professor = %s
+                  ;""", (cod_professor,))
+  professorpessoa = cursor.fetchall()
+  cursor.close()
+  return jsonify(professorpessoa)
+
+@app.route('/professorespessoas/<int:cod_professor>', methods=['PUT'])
+def update_professorpessoa(cod_professor):
+  data = request.json
+  cursor = conn.cursor()
+  cursor.execute("""
+    UPDATE public.pessoas 
+    SET 
+      cpf = %s,
+      nome = %s,	
+      email = %s,	
+      data_nascimento = %s,	
+      sexo = %s,	
+      cep = %s,	
+      telefone = %s
+    WHERE cpf in (
+      SELECT cpf FROM professores p WHERE p.cod_professor = %s
+    )
+    RETURNING cpf;
+    """, (data['cpf'], data['nome'], data['email'], data['data_nascimento'], data['sexo'], data['cep'], data['telefone'], cod_professor))
+  cpf = cursor.fetchone()[0]
+  print(cpf)
+  cursor.execute("""
+    UPDATE public.professores 
+    SET 
+      salario = %s,	
+      formacao = %s
+    WHERE cod_professor = %s
+    RETURNING cod_professor
+    """, (data['salario'], data['formacao'], cod_professor))
+  cod = cursor.fetchone()[0]
+  print(cod)
+  
+  conn.commit()
+  cursor.close()
+  return jsonify({'message': 'pessoa atualizado com sucesso'})
+
+@app.route('/professorespessoas', methods=['POST'])
+def create_professorespessoas():
+  data = request.json
+  cursor = conn.cursor()
+  cursor.execute("""
+    INSERT INTO public.pessoas (
+      cpf,
+      nome,	
+      email,	
+      data_nascimento,	
+      sexo,	
+      cep,	
+      telefone
+      ) 
+      VALUES (%s, %s, %s, %s, %s, %s, %s) 
+    RETURNING cpf;
+    """, 
+    (data['cpf'], data['nome'], data['email'], data['data_nascimento'], data['sexo'], data['cep'], data['telefone']))
+  cpf = cursor.fetchone()[0]
+  cursor.execute("""
+    INSERT INTO public.professores (
+      cpf,
+      salario,
+      formacao
+      ) 
+      VALUES (%s, %s, %s) 
+    RETURNING cod_professor;
+    """, 
+    (cpf, data['salario'], data['formacao'] ))
+  cod_professor = cursor.fetchone()[0]
+  
+  conn.commit()
+  cursor.close()
+  
+  return jsonify({
+    'cpf': cpf,
+    'cod_professor': cod_professor,
+  }), 201
 
 
 
@@ -821,7 +955,7 @@ def get_relatórios():
     return jsonify(relatorios)
 
 @app.route('/historico/<int:cod_aluno>', methods=['GET'])
-def get_historico(cod_aluno):
+def get_historico_aluno(cod_aluno):
     cursor = conn.cursor()
     cursor.execute("""
         SELECT d.nome, h.nota_geral, h.frequencia_geral, h.aprovacao_final
