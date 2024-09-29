@@ -33,6 +33,7 @@ const CustomNavbar = ( {showToast, setShowToast, messageToast, setMessageToast, 
       setMessageToast(data.message)
       setVariantToast('success')
       setShowToast(true)
+      navigate('/home')
     });
   }
 

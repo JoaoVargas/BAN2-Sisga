@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 import datetime as dt
 import json
@@ -297,7 +297,20 @@ def get_pessoa(cpf=''):
 def create_pessoa():
   data = request.json
   cursor = conn.cursor()
-  cursor.execute("INSERT INTO public.pessoas (cpf) VALUES (%s) RETURNING cpf;", (data['cpf'],))
+  cursor.execute("""
+    INSERT INTO public.pessoas (
+      cpf,
+      nome,	
+      email,	
+      data_nascimento,	
+      sexo,	
+      cep,	
+      telefone
+      ) 
+      VALUES (%s, %s, %s, %s, %s, %s, %s) 
+    RETURNING cpf;
+    """, 
+    (data['cpf'], data['nome'], data['email'], data['data_nascimento'], data['sexo'], data['cep'], data['telefone']))
   cpf = cursor.fetchone()[0]
   conn.commit()
   cursor.close()
@@ -305,9 +318,21 @@ def create_pessoa():
 
 @app.route('/pessoas/<cpf>', methods=['PUT'])
 def update_pessoa(cpf=''):
+  print("chegu")
   data = request.json
   cursor = conn.cursor()
-  cursor.execute("UPDATE public.pessoas SET cpf = %s WHERE cpf = %s;", (data['cpf'], cpf))
+  cursor.execute("""
+    UPDATE public.pessoas 
+    SET 
+      cpf = %s,
+      nome = %s,	
+      email = %s,	
+      data_nascimento = %s,	
+      sexo = %s,	
+      cep = %s,	
+      telefone = %s
+    WHERE cpf = %s;
+    """, (data['cpf'], data['nome'], data['email'], data['data_nascimento'], data['sexo'], data['cep'], data['telefone'], cpf))
   conn.commit()
   cursor.close()
   return jsonify({'message': 'pessoa atualizado com sucesso'})
@@ -503,6 +528,7 @@ def get_alunospessoas():
                   FROM public.alunos a
                   LEFT JOIN public.pessoas p
                     ON a.cpf = p.cpf
+                  ORDER BY a.cod_aluno
                   ;""")
   alunospessoas = cursor.fetchall()
   cursor.close()
@@ -531,6 +557,42 @@ def get_alunopessoa(cod_aluno):
   cursor.close()
   return jsonify(alunopessoa)
 
+@app.route('/alunospessoas', methods=['POST'])
+def create_alunospessoas():
+  data = request.json
+  cursor = conn.cursor()
+  cursor.execute("""
+    INSERT INTO public.pessoas (
+      cpf,
+      nome,	
+      email,	
+      data_nascimento,	
+      sexo,	
+      cep,	
+      telefone
+      ) 
+      VALUES (%s, %s, %s, %s, %s, %s, %s) 
+    RETURNING cpf;
+    """, 
+    (data['cpf'], data['nome'], data['email'], data['data_nascimento'], data['sexo'], data['cep'], data['telefone']))
+  cpf = cursor.fetchone()[0]
+  cursor.execute("""
+    INSERT INTO public.alunos (
+      cpf
+      ) 
+      VALUES (%s) 
+    RETURNING cod_aluno;
+    """, 
+    (cpf, ))
+  cod_aluno = cursor.fetchone()[0]
+  
+  conn.commit()
+  cursor.close()
+  
+  return jsonify({
+    'cpf': cpf,
+    'cod_aluno': cod_aluno,
+  }), 201
 
 
 
