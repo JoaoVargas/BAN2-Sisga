@@ -8,6 +8,8 @@ import Alunos from './src/routes/alunos/Alunos';
 import Aluno from './src/routes/alunos/Aluno';
 import Professores from './src/routes/professores/Professores';
 import Professor from './src/routes/professores/Professor';
+import Coordenadores from './src/routes/coordenadores/Coordenadores';
+import Coordenador from './src/routes/coordenadores/Coordenador';
 
 createRoot(document.getElementById('root')).render(
   // <StrictMode>
@@ -21,6 +23,8 @@ createRoot(document.getElementById('root')).render(
         <Route path="/alunos/:cod_aluno" element={< Aluno />}/>
         <Route path="/professores" element={< Professores />}/>
         <Route path="/professores/:cod_professor" element={< Professor />}/>
+        <Route path="/coordenadores" element={< Coordenadores />}/>
+        <Route path="/coordenadores/:cod_coordenador" element={< Coordenador />}/>
         <Route path="*" element={<Null />} />
       </Routes>
     </BrowserRouter>

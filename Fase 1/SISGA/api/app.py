@@ -405,6 +405,131 @@ def delete_coordenador(cod_coordenador):
 
 
 
+# Auxiliar Coordenadores
+@app.route('/coordenadorespessoas', methods=['GET'])
+def get_coordenadorespessoas():
+  cursor = conn.cursor()
+  cursor.execute("""
+                  SELECT 
+                    c.cod_coordenador,
+                    c.cpf,
+                    pe.nome,
+                    pe.email,
+                    pe.data_nascimento,
+                    pe.sexo,
+                    pe.cep,
+                    pe.telefone,
+                    c.salario
+                  FROM public.coordenadores c
+                  LEFT JOIN public.pessoas pe
+                    ON c.cpf = pe.cpf
+                  ORDER BY c.cod_coordenador
+                  ;""")
+  coordenadorespessoas = cursor.fetchall()
+  cursor.close()
+  return jsonify(coordenadorespessoas)
+
+@app.route('/coordenadorespessoas/<int:cod_coordenador>', methods=['GET'])
+def get_coordenadorpessoa(cod_coordenador):
+  cursor = conn.cursor()
+  cursor.execute("""
+                  SELECT 
+                    c.cod_coordenador,
+                    c.cpf,
+                    pe.nome,
+                    pe.email,
+                    pe.data_nascimento,
+                    pe.sexo,
+                    pe.cep,
+                    pe.telefone,
+                    c.salario
+                  FROM public.coordenadores c
+                  LEFT JOIN public.pessoas pe
+                    ON c.cpf = pe.cpf
+                  WHERE
+                    c.cod_coordenador = %s
+                  ;""", (cod_coordenador,))
+  coordenadorpessoa = cursor.fetchall()
+  cursor.close()
+  return jsonify(coordenadorpessoa)
+
+@app.route('/coordenadorespessoas/<int:cod_coordenador>', methods=['PUT'])
+def update_coordenadorpessoa(cod_coordenador):
+  data = request.json
+  cursor = conn.cursor()
+  cursor.execute("""
+    UPDATE public.pessoas 
+    SET 
+      cpf = %s,
+      nome = %s,	
+      email = %s,	
+      data_nascimento = %s,	
+      sexo = %s,	
+      cep = %s,	
+      telefone = %s
+    WHERE cpf in (
+      SELECT cpf FROM coordenadores c WHERE c.cod_coordenador = %s
+    )
+    RETURNING cpf;
+    """, (data['cpf'], data['nome'], data['email'], data['data_nascimento'], data['sexo'], data['cep'], data['telefone'], cod_coordenador))
+  cpf = cursor.fetchone()[0]
+  print(cpf)
+  cursor.execute("""
+    UPDATE public.coordenadores 
+    SET 
+      salario = %s
+    WHERE cod_coordenador = %s
+    RETURNING cod_coordenador
+    """, (data['salario'], cod_coordenador))
+  cod = cursor.fetchone()[0]
+  print(cod)
+  
+  conn.commit()
+  cursor.close()
+  return jsonify({'message': 'pessoa atualizado com sucesso'})
+
+@app.route('/coordenadorespessoas', methods=['POST'])
+def create_coordenadorpessoa():
+  data = request.json
+  cursor = conn.cursor()
+  cursor.execute("""
+    INSERT INTO public.pessoas (
+      cpf,
+      nome,	
+      email,	
+      data_nascimento,	
+      sexo,	
+      cep,	
+      telefone
+      ) 
+      VALUES (%s, %s, %s, %s, %s, %s, %s) 
+    RETURNING cpf;
+    """, 
+    (data['cpf'], data['nome'], data['email'], data['data_nascimento'], data['sexo'], data['cep'], data['telefone']))
+  cpf = cursor.fetchone()[0]
+  cursor.execute("""
+    INSERT INTO public.coordenadores (
+      cpf,
+      salario
+      ) 
+      VALUES (%s, %s) 
+    RETURNING cod_coordenador;
+    """, 
+    (cpf, data['salario'] ))
+  cod_coordenador = cursor.fetchone()[0]
+  
+  conn.commit()
+  cursor.close()
+  
+  return jsonify({
+    'cpf': cpf,
+    'cod_coordenador': cod_coordenador,
+  }), 201
+
+
+
+
+
 # Professores
 @app.route('/professores', methods=['GET'])
 def get_professores():
