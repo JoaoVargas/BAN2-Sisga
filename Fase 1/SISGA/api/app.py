@@ -742,6 +742,35 @@ def delete_turma(cod_turma):
 
 
 # Relatorios
+
+@app.route('/relatorios', methods=['GET'])
+def get_relatórios():
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT r.cod_relatorio, a.cod_aluno, array_agg(d.nome) AS disciplinas, r.notas, r.faltas
+        FROM public.relatorios r
+        JOIN public.alunos a ON r.cod_aluno = a.cod_aluno
+        JOIN public.historicos h ON h.cod_aluno = a.cod_aluno
+        JOIN public.disciplinas d ON h.cod_disciplina = d.cod_disciplina
+        GROUP BY r.cod_relatorio, a.cod_aluno, r.notas, r.faltas;
+    """)
+    relatorios = cursor.fetchall()
+    cursor.close()
+    return jsonify(relatorios)
+
+@app.route('/historico/<int:cod_aluno>', methods=['GET'])
+def get_historico(cod_aluno):
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT d.nome, h.nota_geral, h.frequencia_geral, h.aprovacao_final
+        FROM public.historicos h
+        JOIN public.disciplinas d ON h.cod_disciplina = d.cod_disciplina
+        WHERE h.cod_aluno = %s;
+    """, (cod_aluno,))
+    historico = cursor.fetchall()
+    cursor.close()
+    return jsonify(historico)
+    ##novos##
 @app.route('/relatorios', methods=['GET'])
 def get_relatorios():
     cursor = conn.cursor()
@@ -854,10 +883,47 @@ def delete_historico(cod_historico):
 
 
 
+#intercessão
+@app.route('/alunos_disciplinas', methods=['GET'])
+def get_alunos_disciplinas():
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT a.cod_aluno, p.nome AS aluno_nome, d.nome AS disciplina_nome
+        FROM public.alunos a
+        JOIN public.historicos h ON a.cod_aluno = h.cod_aluno
+        JOIN public.disciplinas d ON h.cod_disciplina = d.cod_disciplina
+        JOIN public.pessoas p ON a.cpf = p.cpf;
+    """)
+    alunos_disciplinas = cursor.fetchall()
+    cursor.close()
+    return jsonify(alunos_disciplinas)
 
-# Relatorios Dados
-# % do curso concluida
-# historico + disciplinas q faltam
+@app.route('/coordenadores_cursos', methods=['GET'])
+def get_coordenadores_cursos():
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT c.cod_coordenador, p.nome AS coordenador_nome, cu.nome AS curso_nome
+        FROM public.coordenadores c
+        JOIN public.cursos cu ON c.cod_coordenador = cu.cod_coordenador
+        JOIN public.pessoas p ON c.cpf = p.cpf;
+    """)
+    coordenadores_cursos = cursor.fetchall()
+    cursor.close()
+    return jsonify(coordenadores_cursos)
+
+@app.route('/professores_disciplinas', methods=['GET'])
+def get_professores_disciplinas():
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT pr.cod_professor, p.nome AS professor_nome, d.nome AS disciplina_nome
+        FROM public.professores pr
+        JOIN public.turmas t ON pr.cod_professor = t.cod_professor
+        JOIN public.disciplinas d ON t.cod_disciplina = d.cod_disciplina
+        JOIN public.pessoas p ON pr.cpf = p.cpf;
+    """)
+    professores_disciplinas = cursor.fetchall()
+    cursor.close()
+    return jsonify(professores_disciplinas)
 
 
 
