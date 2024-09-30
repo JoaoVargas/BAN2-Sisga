@@ -141,6 +141,7 @@ const Coordenador = () => {
       variantToast={variantToast} 
       setVariantToast={setVariantToast}
       />
+
       <Container
       className='mt-5'>
         <Card >
@@ -179,6 +180,11 @@ const Coordenador = () => {
           </Button>
         </div>
       </Container>
+
+      <Container>
+        
+      </Container>
+
       <Modal 
       show={modalEditar} 
       onHide={() => setModalEditar(false)}

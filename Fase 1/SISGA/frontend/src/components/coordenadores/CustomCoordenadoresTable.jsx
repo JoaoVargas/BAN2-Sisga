@@ -17,8 +17,9 @@ const CustomCoordenadoresTable = ({coordenadores}) => {
 
   return (
     <>
+      <h1 className='mt-5'><center>Coordenadores</center></h1>
       <Container 
-      className='mt-5 p-0 rounded-3 overflow-hidden border border-3'>
+      className='mt-3 p-0 rounded-3 overflow-hidden border border-3'>
         <Table 
         striped 
         borderless 

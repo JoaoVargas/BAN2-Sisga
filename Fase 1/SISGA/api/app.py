@@ -526,6 +526,26 @@ def create_coordenadorpessoa():
     'cod_coordenador': cod_coordenador,
   }), 201
 
+@app.route('/coordenadorescursos', methods=['GET'])
+def get_coordenadorescursos():
+  cursor = conn.cursor()
+  cursor.execute("""
+                  SELECT 
+                    c.cod_curso,
+                    c.nome,
+                    c.periodo,
+                    c.credito_total,
+                    p.nome
+                  FROM public.cursos c
+                  LEFT JOIN public.coordenadores co
+                    ON c.cod_coordenador = co.cod_coordenador
+                  LEFT JOIN public.pessoas p
+                    ON co.cpf = p.cpf
+                  ORDER BY c.cod_curso
+                  ;""")
+  coordenadorescursos = cursor.fetchall()
+  cursor.close()
+  return jsonify(coordenadorescursos)
 
 
 
@@ -855,6 +875,8 @@ def create_alunospessoas():
 
 
 
+
+
 # Cursos
 @app.route('/cursos', methods=['GET'])
 def get_cursos():
@@ -893,7 +915,11 @@ def update_curso(cod_curso):
     cursor = conn.cursor()
     cursor.execute("""
         UPDATE public.cursos 
-        SET nome = %s, periodo = %s, credito_total = %s, cod_coordenador = %s 
+        SET 
+          nome = %s, 
+          periodo = %s, 
+          credito_total = %s, 
+          cod_coordenador = %s 
         WHERE cod_curso = %s;
     """, (data['nome'], data['periodo'], data['credito_total'], data['cod_coordenador'], cod_curso))
     conn.commit()
@@ -907,6 +933,55 @@ def delete_curso(cod_curso):
     conn.commit()
     cursor.close()
     return jsonify({'message': 'Curso deletado com sucesso'})
+
+
+
+
+
+# Auxiliar Cursos
+@app.route('/cursoscoordenadores/<int:cod_curso>', methods=['GET'])
+def get_cursocoordenador(cod_curso):
+  cursor = conn.cursor()
+  cursor.execute("""
+                  SELECT 
+                    c.cod_curso,
+                    c.nome,
+                    c.periodo,
+                    c.credito_total,
+                    p.nome
+                  FROM public.cursos c
+                  LEFT JOIN public.coordenadores co
+                    ON c.cod_coordenador = co.cod_coordenador
+                  LEFT JOIN public.pessoas p
+                    ON co.cpf = p.cpf
+                  WHERE c.cod_curso = %s
+                  ;""", (cod_curso,))
+  cursocoordenador = cursor.fetchall()
+  cursor.close()
+  return jsonify(cursocoordenador)
+
+@app.route('/cursosdisciplinas/<int:cod_curso>', methods=['GET'])
+def get_cursodisciplinas(cod_curso):
+    cursor = conn.cursor()
+    cursor.execute("""
+      SELECT 
+        d.cod_disciplina,
+        d.nome,
+        d.fase,
+        d.creditos
+      FROM public.cursos c
+      LEFT JOIN public.curso_disciplinas cd
+        ON c.cod_curso = cd.cod_curso
+      LEFT JOIN public.disciplinas d
+        ON d.cod_disciplina = cd.cod_disciplina
+      WHERE c.cod_curso = %s
+      ORDER BY d.cod_disciplina
+      """, (cod_curso,))
+    cursodisciplinas = cursor.fetchall()
+    cursor.close()
+    if cursodisciplinas:
+        return jsonify(cursodisciplinas)
+    return jsonify({'error': 'Disciplinas não encontradas'}), 404
 
 
 

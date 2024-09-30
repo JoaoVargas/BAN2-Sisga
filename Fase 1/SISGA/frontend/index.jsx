@@ -10,6 +10,7 @@ import Professores from './src/routes/professores/Professores';
 import Professor from './src/routes/professores/Professor';
 import Coordenadores from './src/routes/coordenadores/Coordenadores';
 import Coordenador from './src/routes/coordenadores/Coordenador';
+import Curso from './src/routes/cursos/Curso';
 
 createRoot(document.getElementById('root')).render(
   // <StrictMode>
@@ -19,12 +20,18 @@ createRoot(document.getElementById('root')).render(
           <Navigate to="/home" />
         }/>
         <Route path="/home" element={< Home />}/>
+
         <Route path="/alunos" element={< Alunos />}/>
         <Route path="/alunos/:cod_aluno" element={< Aluno />}/>
+
         <Route path="/professores" element={< Professores />}/>
         <Route path="/professores/:cod_professor" element={< Professor />}/>
+
         <Route path="/coordenadores" element={< Coordenadores />}/>
         <Route path="/coordenadores/:cod_coordenador" element={< Coordenador />}/>
+        
+        <Route path="/cursos/:cod_curso" element={< Curso />}/>
+
         <Route path="*" element={<Null />} />
       </Routes>
     </BrowserRouter>

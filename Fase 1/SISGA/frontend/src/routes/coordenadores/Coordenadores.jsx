@@ -3,6 +3,7 @@ import CustomNavbar from '../../components/CustomNavbar';
 import { Button, Container, Form, Modal } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import CustomCoordenadoresTable from '../../components/coordenadores/CustomCoordenadoresTable';
+import CustomCursosTable from '../../components/coordenadores/CustomCursosTable';
 
 const Coordenadores = () => {
   const navigate = useNavigate();
@@ -19,8 +20,15 @@ const Coordenadores = () => {
   const [coordenadorCep, setCoordenadorCep] = useState('');
   const [coordenadorCel, setCoordenadorCel] = useState('');
   const [coordenadorSalario, setCoordenadorSalario] = useState('');
+
+  const [cursos, setCursos] = useState([]);
+  const [cursoNome, setCursoNome] = useState('');
+  const [cursoPeriodo, setCursoPeriodo] = useState('m');
+  const [cursoCreditos, setCursoCreditos] = useState(1);
+  const [cursoCoordenador, setCursoCoordenador] = useState(0);
   
   const [modalCriar, setModalCriar] = useState(false);
+  const [modalCriarCurso, setModalCriarCurso] = useState(false);
 
   useEffect(() => {
     fetch('http://0.0.0.0:5002/coordenadorespessoas', { 
@@ -34,6 +42,21 @@ const Coordenadores = () => {
     .then((dataCoordenadores) => {
       console.log(dataCoordenadores);
       setCoordenadores(dataCoordenadores);
+    })
+  }, []);
+
+  useEffect(() => {
+    fetch('http://0.0.0.0:5002/coordenadorescursos', { 
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    .then((res) => res.json())
+    .then((dataCursos) => {
+      console.log(dataCursos);
+      setCursos(dataCursos);
     })
   }, []);
 
@@ -62,7 +85,29 @@ const Coordenadores = () => {
     console.log(e);
     navigate(0)   
   })
+ }
 
+ const handleCriarCurso = (e) => {
+  event.preventDefault();
+
+  fetch('http://0.0.0.0:5002/cursos', { 
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      "nome": cursoNome,
+      "periodo": cursoPeriodo,
+      "credito_total": cursoCreditos,
+      "cod_coordenador": cursoCoordenador
+    })
+  })
+  .then((res) => res.json())
+  .then((e) => {
+    console.log(e);
+    navigate(0)   
+  })
  }
 
   return (
@@ -75,12 +120,23 @@ const Coordenadores = () => {
       variantToast={variantToast} 
       setVariantToast={setVariantToast}
       />
+      
+
       <CustomCoordenadoresTable coordenadores={coordenadores}/>
       <Container
       className='d-flex flex-row mt-3'>
         <Button
         onClick={() => setModalCriar(true)}>
           Criar Coordenador Novo
+        </Button>
+      </Container>
+      
+      <CustomCursosTable cursos={cursos}/>
+      <Container
+      className='d-flex flex-row mt-3'>
+        <Button
+        onClick={() => setModalCriarCurso(true)}>
+          Criar Curso Novo
         </Button>
       </Container>
 
@@ -165,6 +221,65 @@ const Coordenadores = () => {
               Fechar
             </Button>
             <Button type="submit" variant="primary" onClick={() => setModalCriar(false)}>
+              Salvar
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+
+      <Modal 
+      show={modalCriarCurso} 
+      onHide={() => setModalCriarCurso(false)}
+      size="lg"
+      centered>
+        <Form onSubmit={(e) => handleCriarCurso(e)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Criar Coordenador</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+              <Form.Group className="mb-3" controlId="nome">
+                <Form.Label>Nome:</Form.Label>
+                <Form.Control 
+                type="text" 
+                value={cursoNome}
+                onChange={(e) => setCursoNome(e.target.value)}/>
+              </Form.Group>
+
+              <Form.Group className="mb-3" controlId="periodo">
+                <Form.Label>Periodo:</Form.Label>
+                <Form.Select onChange={(e) => setCursoPeriodo(e.target.value)} value={cursoPeriodo}>
+                  <option value="m">Matutino</option>
+                  <option value="d">Diurno</option>
+                  <option value="n">Noturno</option>
+                  <option value="i">Integral</option>
+                </Form.Select>
+              </Form.Group>
+
+              <Form.Group className="mb-3" controlId="creditos">
+                <Form.Label>Total de Créditos:</Form.Label>
+                <Form.Control 
+                type="number" 
+                min={"1"}
+                step={"1"}
+                value={cursoCreditos}
+                onChange={(e) => setCursoCreditos(e.target.value)}/>
+              </Form.Group>
+
+              <Form.Group className="mb-3" controlId="periodo">
+                <Form.Label>Coordenador:</Form.Label>
+                <Form.Select onChange={(e) => setCursoCoordenador(e.target.value)} value={cursoCoordenador}>
+                  { coordenadores.map((c) => (
+                      <option key={c[0]} value={c[0]}>{c[2]}</option>
+                    )
+                  )}
+                </Form.Select>
+              </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setModalCriarCurso(false)}>
+              Fechar
+            </Button>
+            <Button type="submit" variant="primary" onClick={() => setModalCriarCurso(false)}>
               Salvar
             </Button>
           </Modal.Footer>
