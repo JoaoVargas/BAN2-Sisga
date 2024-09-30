@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import CustomNavbar from '../../components/CustomNavbar.jsx';
 import { Button, Card, Container, Modal, Form } from 'react-bootstrap';
-import CustomDisciplinasTable from '../../components/disciplinas/CustomDisciplinasTable.jsx';
 
 const Curso = () => {
   const navigate = useNavigate();
@@ -21,14 +20,8 @@ const Curso = () => {
   const [cursoDisciplinas, setCursoDisciplinas] = useState([]);
   const [coordenadores, setCoordenadores] = useState([]);
 
-  const [disciplinaNome, setDisciplinaNome] = useState('');
-  const [disciplinaFase, setDisciplinaFase] = useState(1);
-  const [disciplinaCreditos, setDisciplinaCreditos] = useState(1);
-
   const [modalEditar, setModalEditar] = useState(false);
   const [modalExcluir, setModalExcluir] = useState(false);
-  const [modalCriarDisciplina, setModalCriarDisciplina] = useState(false);
-  const [modalAdcionarDisciplina, setModalAdcionarDisciplina] = useState(false);
 
   let { cod_curso } = useParams();
 
@@ -51,6 +44,7 @@ const Curso = () => {
       setCursoCoordenador(dataCurso[0][4])
     })
   }, []);
+
   useEffect(() => {
     fetch('http://0.0.0.0:5002/cursosdisciplinas/' + cod_curso, { 
       method: 'GET',
@@ -65,6 +59,7 @@ const Curso = () => {
       setCursoDisciplinas(dataCurso)
     })
   }, []);
+
   useEffect(() => {
     fetch('http://0.0.0.0:5002/coordenadorespessoas', { 
       method: 'GET',
@@ -79,6 +74,9 @@ const Curso = () => {
       setCoordenadores(dataCoordenadores);
     })
   }, []);
+
+
+
 
   const handleEdit = (event) => {
     event.preventDefault();
@@ -110,6 +108,7 @@ const Curso = () => {
         setVariantToast('danger')
       }
     })
+    
   }
 
   const handleExcluir = () => {
@@ -137,27 +136,7 @@ const Curso = () => {
     
   }
 
-  const handleCriarDisciplina = (event) => {
-    event.preventDefault();
 
-    fetch('http://0.0.0.0:5002/disciplinascursos/' + curso[0], { 
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        "nome": disciplinaNome,
-        "fase": disciplinaFase,
-        "creditos": disciplinaCreditos
-      })
-    })
-    .then((res) => res.json())
-    .then((e) => {
-      console.log(e);
-      navigate(0)
-    })
-  }
   
   return (
     <>
@@ -204,17 +183,8 @@ const Curso = () => {
         </div>
       </Container>
 
-      <CustomDisciplinasTable disciplinas={cursoDisciplinas} />
-      <Container
-      className='d-flex flex-row justify-content-around mt-3'>
-        <Button
-        onClick={() => setModalCriarDisciplina(true)}>
-          Criar Disciplina Nova
-        </Button>
-        <Button
-        onClick={() => setModalCriarDisciplina(true)}>
-          Adicionar Disciplina Existente
-        </Button>
+      <Container>
+        
       </Container>
 
       <Modal 
@@ -298,55 +268,6 @@ const Curso = () => {
               Excluir
             </Button>
           </Modal.Footer>
-      </Modal>
-
-      <Modal 
-      show={modalCriarDisciplina} 
-      onHide={() => setModalCriarDisciplina(false)}
-      size="lg"
-      centered>
-        <Form onSubmit={(e) => handleCriarDisciplina(e)}>
-          <Modal.Header closeButton>
-            <Modal.Title>Criar Disciplina</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-              <Form.Group className="mb-3" controlId="nome">
-                <Form.Label>Nome:</Form.Label>
-                <Form.Control 
-                type="text" 
-                value={disciplinaNome}
-                onChange={(e) => setDisciplinaNome(e.target.value)}/>
-              </Form.Group>
-
-              <Form.Group className="mb-3" controlId="fase">
-                <Form.Label>Fase:</Form.Label>
-                <Form.Control 
-                type="number" 
-                min={"1"}
-                step={"1"}
-                value={disciplinaFase}
-                onChange={(e) => setDisciplinaFase(e.target.value)}/>
-              </Form.Group>
-
-              <Form.Group className="mb-3" controlId="email">
-                <Form.Label>Creditos:</Form.Label>
-                <Form.Control 
-                type="number" 
-                min={"1"}
-                step={"1"}
-                value={disciplinaCreditos}
-                onChange={(e) => setDisciplinaCreditos(e.target.value)}/>
-              </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setModalCriarDisciplina(false)}>
-              Fechar
-            </Button>
-            <Button type="submit" variant="primary" onClick={() => setModalCriarDisciplina(false)}>
-              Salvar
-            </Button>
-          </Modal.Footer>
-        </Form>
       </Modal>
     </>
   );

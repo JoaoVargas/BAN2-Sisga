@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import CustomNavbar from '../../components/CustomNavbar.jsx';
-import { Button, Card, Container, Modal, Form } from 'react-bootstrap';
+import { Button, Card, Container, Modal, Form, Col, Row, Table } from 'react-bootstrap';
 
 const Aluno = () => {
   const navigate = useNavigate();
@@ -21,10 +21,43 @@ const Aluno = () => {
   const [alunoCep, setAlunoCep] = useState('');
   const [alunoCel, setAlunoCel] = useState('');
 
+  const [historico, sethistorico] = useState([]);
+  const [conclusão, setConclusao] = useState(0);
+
   const [modalEditar, setModalEditar] = useState(false);
   const [modalExcluir, setModalExcluir] = useState(false);
 
   let { cod_aluno } = useParams();
+
+  useEffect(() => {
+    fetch('http://0.0.0.0:5002/historicoescolar/' + cod_aluno, { 
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    .then((res) => res.json())
+    .then((dataHistorico) => {
+      console.log(dataHistorico);
+      sethistorico(dataHistorico)
+    })
+  }, []);
+
+  useEffect(() => {
+    fetch('http://0.0.0.0:5002/conclusaoescolar/' + cod_aluno, { 
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+    .then((res) => res.json())
+    .then((dataConclusao) => {
+      console.log(dataConclusao[0][0]);
+      setConclusao(dataConclusao[0][0])
+    })
+  }, []);
 
   useEffect(() => {
     fetch('http://0.0.0.0:5002/alunospessoas/' + cod_aluno, { 
@@ -65,6 +98,22 @@ const Aluno = () => {
     return `${year}-${month}-${day}`;
   }
 
+  const tratarData = (inputArray) => {
+    if (!inputArray || !Array.isArray(inputArray)) return null; // Verifica se a entrada é um array válido
+    
+    return inputArray.map(input => {
+        if (!input) return null; // Retorna null para valores nulos ou undefined
+
+        const date = new Date(input);
+        if (isNaN(date)) return null; // Verifica se a data é válida
+        
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}`;
+    });
+  }
   const sexo = ["Masculino", "Feminino"]
 
   const handleEdit = (event) => {
@@ -176,6 +225,79 @@ const Aluno = () => {
           </Button>
         </div>
       </Container>
+
+      <Container className='my-5'>
+      <Row xs={1} xl={2} className="g-4">
+        <Col>
+          <Card className="text-center">
+            <Card.Header>Historico Escolar</Card.Header>
+            <Card.Body>
+              <Table 
+              striped 
+              borderless 
+              hover
+              responsive
+              size='sm'
+              className='m-0 '>
+                <thead>
+                  <tr>
+                    <th>Fase</th>
+                    <th>Disciplina</th>
+                    <th>Nome</th>
+                    <th>Creditos</th>
+                    <th>Notas</th>
+                    <th>Frequência</th>
+                    <th>Aprovação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {
+                    historico && historico.length > 0
+                    ?
+                    historico.map((item, id) => {
+                        return (
+                          <tr 
+                          key={id} 
+                          role='button'>
+                            <td>{item[2]}</td>
+                            <td>{item[0]}</td>
+                            <td>{item[1]}</td>
+                            <td>{item[3]}</td>
+                            <td>{item[4] ? item[4].join(', ') : null  || item[6]}</td>
+                            <td>{tratarData(item[5]) ? tratarData(item[5]).join(', ') : null || item[7]}</td>
+                            <td>{`${item[8]
+                                    ? 'aprovado' 
+                                    : item[8] == false
+                                      ? 'reprovado'
+                                      : 'cursando'}`}</td>
+                          </tr>
+                        )
+                      })
+                    :
+                      <tr>
+                        <td>
+                          Tabela Vazia
+                        </td>
+                      </tr>
+                  }
+                </tbody>
+              </Table>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col>
+          <Card className="text-center">
+            <Card.Header>Conclusão Escolar</Card.Header>
+            <Card.Body>
+              <h1>{conclusão > 0
+                    ? conclusão.slice(0, 4)
+                    : 0 }%</h1>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
+
       <Modal 
       show={modalEditar} 
       onHide={() => setModalEditar(false)}

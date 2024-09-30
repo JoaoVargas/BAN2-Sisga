@@ -1044,6 +1044,33 @@ def delete_disciplina(cod_disciplina):
 
 
 
+# Auxiliar Disciplinas
+@app.route('/disciplinascursos/<int:cod_curso>', methods=['POST'])
+def create_disciplinacurso(cod_curso):
+    data = request.json
+    cursor = conn.cursor()
+    cursor.execute("""
+      INSERT INTO public.disciplinas 
+        (nome, fase, creditos)
+      VALUES (%s, %s, %s) 
+      RETURNING cod_disciplina;
+    """, (data['nome'], data['fase'], data['creditos']))
+    cod_disciplina = cursor.fetchone()[0]
+    
+    cursor.execute("""
+      INSERT INTO public.curso_disciplinas 
+        (cod_curso, cod_disciplina)
+      VALUES (%s, %s) 
+      RETURNING cod_curso_disciplina;
+    """, (cod_curso, cod_disciplina))
+    cod_curso_disciplina = cursor.fetchone()[0]
+    
+    conn.commit()
+    cursor.close()
+    return jsonify({'cod_curso_disciplina': cod_curso_disciplina}), 201
+
+
+
 # Curso_Disciplinas
 @app.route('/curso_disciplinas', methods=['GET'])
 def get_curso_disciplinas():
@@ -1138,7 +1165,6 @@ def delete_turma(cod_turma):
 
 
 # Relatorios
-
 @app.route('/relatorios', methods=['GET'])
 def get_relatórios():
     cursor = conn.cursor()
@@ -1166,7 +1192,83 @@ def get_historico_aluno(cod_aluno):
     historico = cursor.fetchall()
     cursor.close()
     return jsonify(historico)
-    ##novos##
+  
+@app.route('/historicoescolar/<int:cod_aluno>', methods=['GET'])
+def get_historicoescolar(cod_aluno):
+  cursor = conn.cursor()
+  cursor.execute("""
+    SELECT
+      d.cod_disciplina,
+      d.nome,
+      d.fase,
+      d.creditos,
+      r.notas AS notas,
+      r.faltas AS faltas,
+      NULL AS nota_geral,
+      NULL AS frequencia_geral,
+      NULL AS aprovacao_final
+    FROM public.disciplinas d
+    LEFT JOIN turmas t
+        ON t.cod_disciplina = d.cod_disciplina
+    LEFT JOIN relatorios r
+        ON r.cod_turma = t.cod_turma
+    JOIN alunos a
+        ON a.cod_aluno = r.cod_aluno
+    WHERE a.cod_aluno = %s
+
+    UNION ALL
+
+    SELECT
+      d.cod_disciplina,
+      d.nome,
+      d.fase,
+      d.creditos,
+      NULL AS notas,
+      NULL AS faltas,
+      h.nota_geral,
+      h.frequencia_geral,
+      h.aprovacao_final
+    FROM public.disciplinas d
+    LEFT JOIN historicos h
+        ON h.cod_disciplina = d.cod_disciplina
+    JOIN alunos a
+        ON a.cod_aluno = h.cod_aluno
+    WHERE a.cod_aluno = %s
+
+    ORDER BY cod_disciplina;
+  """, (cod_aluno, cod_aluno))
+  historicoescolar = cursor.fetchall()
+  cursor.close()
+  return jsonify(historicoescolar)
+    
+@app.route('/conclusaoescolar/<int:cod_aluno>', methods=['GET'])
+def get_conclusaoescolar(cod_aluno):
+  cursor = conn.cursor()
+  cursor.execute("""
+    WITH total_creditos_curso AS (
+      SELECT c.credito_total
+      FROM cursos c
+      JOIN alunos a ON a.cod_aluno = %s
+      JOIN historicos h ON h.cod_aluno = a.cod_aluno
+      JOIN curso_disciplinas cd ON cd.cod_disciplina = h.cod_disciplina
+      WHERE h.cod_aluno = %s
+      LIMIT 1
+    ),
+    creditos_concluidos AS (
+      SELECT SUM(d.creditos) AS creditos_cursados
+      FROM historicos h
+      JOIN disciplinas d ON h.cod_disciplina = d.cod_disciplina
+      WHERE h.cod_aluno = %s
+      AND h.aprovacao_final = TRUE
+    )
+    SELECT 
+      (cc.creditos_cursados::decimal / tc.credito_total::decimal) * 100 AS percentual_conclusao
+    FROM creditos_concluidos cc, total_creditos_curso tc;
+  """, (cod_aluno, cod_aluno, cod_aluno))
+  historicoescolar = cursor.fetchall()
+  cursor.close()
+  return jsonify(historicoescolar)
+  
 @app.route('/relatorios', methods=['GET'])
 def get_relatorios():
     cursor = conn.cursor()
